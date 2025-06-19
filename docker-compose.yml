@@ -1,0 +1,36 @@
+# docker-compose.yml
+
+
+services:
+  db:
+    image: postgres:15-alpine  # Use the official, lightweight PostgreSQL image
+    container_name: postgres_db
+    restart: always
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin # Use a more secure password in a real project
+      - POSTGRES_DB=erp_db
+    ports:
+      - "5432:5432" # Expose the database port externally (optional, useful for debugging)
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/ # Ensures data persistence after a container restart
+
+  app:
+    build: . # Build an image based on the Dockerfile in the current directory
+    container_name: streamlit_app
+    restart: always
+    ports:
+      - "8501:8501" # Expose the Streamlit port
+    volumes:
+      - ./app:/app/app # "Mount" the local 'app' folder into the container
+                        # This makes code changes immediately visible without rebuilding the image!
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-admin}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-admin}
+      - POSTGRES_DB=${POSTGRES_DB:-erp_db}
+      - POSTGRES_HOST=db
+    depends_on:
+      - db # Start the app only after the database is ready
+
+volumes:
+  postgres_data:

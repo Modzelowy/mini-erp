@@ -1,0 +1,21 @@
+[project]
+name = "mini-erp"
+version = "0.1.0"
+description = "Application for managing orders"
+authors = [
+    {name = "Modzelowy",email = "storypl@wp.pl"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "streamlit (>=1.46.0,<2.0.0)",
+    "sqlalchemy (>=2.0.41,<3.0.0)",
+    "psycopg2-binary (>=2.9.10,<3.0.0)",
+    "pandas (>=2.3.0,<3.0.0)",
+    "streamlit-option-menu (>=0.4.0,<0.5.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
