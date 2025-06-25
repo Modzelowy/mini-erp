@@ -1,96 +1,96 @@
-# app/models.py (NOWA, PEŁNA WERSJA)
+# app/models.py (THE FINAL, ULTIMATE, CORRECT VERSION)
 
 import enum
 from datetime import datetime
-from sqlalchemy import (
-    Column,
-    Integer,
-    String,
-    Enum as SAEnum,
-    DateTime,
-    Float,
-    ForeignKey,
-)
-from sqlalchemy.orm import relationship
+
 from database import Base
+from sqlalchemy import BigInteger, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import Enum as SAEnum
+
+# Mapped_column is the new, correct function for typed columns
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
-# --- Enums ---
 class ClientType(enum.Enum):
     RECIPIENT = "Recipient"
     SUPPLIER = "Supplier"
 
 
 class ProductUnit(enum.Enum):
-    PCS = "szt"
+    PCS = "pcs"
     KG = "kg"
-    SET = "kpl"
+    SET = "set"
     M = "m"
 
 
-# --- Association Object for Many-to-Many relationship ---
-# This class links an Order with a Product and stores extra data like quantity and price.
 class OrderItem(Base):
     __tablename__ = "order_items"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    order_id: Mapped[int] = mapped_column(ForeignKey("orders.id"))
+    product_id: Mapped[int] = mapped_column(ForeignKey("products.id"))
+    quantity: Mapped[float] = mapped_column(Float, nullable=False)
+    price_per_unit: Mapped[float] = mapped_column(Float, nullable=False)
 
-    id = Column(Integer, primary_key=True)
-    order_id = Column(Integer, ForeignKey("orders.id"), nullable=False)
-    product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
-    quantity = Column(Float, nullable=False)
-    price_per_unit = Column(Float, nullable=False)
-
-    # Relationships to easily access the linked Order and Product objects
-    product = relationship("Product")
-    order = relationship("Order", back_populates="items")
+    product: Mapped["Product"] = relationship(lazy="joined")
+    order: Mapped["Order"] = relationship(back_populates="items")
 
 
-# --- Main Models ---
+class Order(Base):
+    __tablename__ = "orders"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    order_date: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    client_id: Mapped[int] = mapped_column(ForeignKey("clients.id"))
+
+    client: Mapped["Client"] = relationship(back_populates="orders", lazy="joined")
+    items: Mapped[list["OrderItem"]] = relationship(
+        back_populates="order", cascade="all, delete-orphan"
+    )
+
+    @property
+    def total_value(self) -> float:
+        return sum(item.quantity * item.price_per_unit for item in self.items)
+
+    def __repr__(self) -> str:
+        # Check if client is loaded to prevent errors during certain operations
+        if self.client:
+            return f"<Order(id={self.id}, client='{self.client.company_name}')>"
+        return f"<Order(id={self.id})>"
+
+
 class Client(Base):
     __tablename__ = "clients"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    company_name: Mapped[str] = mapped_column(String, index=True, nullable=False)
+    vat_id: Mapped[str] = mapped_column(String, unique=True, index=True, nullable=False)
+    client_type: Mapped[ClientType] = mapped_column(SAEnum(ClientType), nullable=False)
 
-    id = Column(Integer, primary_key=True, index=True)
-    company_name = Column(String, index=True, nullable=False)
-    vat_id = Column(String, unique=True, index=True, nullable=False)
-    client_type = Column(SAEnum(ClientType), nullable=False)
+    orders: Mapped[list["Order"]] = relationship(back_populates="client")
 
-    # This relationship links a Client to their Orders
-    orders = relationship("Order", back_populates="client")
-
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Client(company_name='{self.company_name}')>"
 
 
 class Product(Base):
     __tablename__ = "products"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    name: Mapped[str] = mapped_column(String, index=True, nullable=False)
+    product_index: Mapped[int] = mapped_column(
+        BigInteger, unique=True, index=True, nullable=False
+    )
+    unit: Mapped[ProductUnit] = mapped_column(SAEnum(ProductUnit), nullable=False)
+    stock: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
 
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True, nullable=False)
-    product_index = Column(String, unique=True, index=True, nullable=False)
-    unit = Column(SAEnum(ProductUnit), nullable=False)
-
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Product(name='{self.name}')>"
 
 
-class Order(Base):
-    __tablename__ = "orders"
-
-    id = Column(Integer, primary_key=True, index=True)
-    order_date = Column(DateTime, default=datetime.utcnow, nullable=False)
-    client_id = Column(Integer, ForeignKey("clients.id"), nullable=False)
-
-    # This relationship links an Order back to its Client
-    client = relationship("Client", back_populates="orders")
-
-    # This relationship links an Order to its OrderItem objects
-    items = relationship(
-        "OrderItem", back_populates="order", cascade="all, delete-orphan"
-    )
-
-    # A helper property to easily calculate the total value of the order
-    @property
-    def total_value(self):
-        return sum(item.quantity * item.price_per_unit for item in self.items)
-
-    def __repr__(self):
-        return f"<Order(id={self.id}, client='{self.client.company_name}')>"
+class CompanyProfile(Base):
+    __tablename__ = "company_profile"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    company_name: Mapped[str] = mapped_column(String, nullable=True)
+    vat_id: Mapped[str] = mapped_column(String, nullable=True)
+    address_street: Mapped[str] = mapped_column(String, nullable=True)
+    address_zipcode: Mapped[str] = mapped_column(String, nullable=True)
+    address_city: Mapped[str] = mapped_column(String, nullable=True)
+    bank_account_number: Mapped[str | None] = mapped_column(String, nullable=True)
+    additional_info: Mapped[str | None] = mapped_column(Text, nullable=True)
