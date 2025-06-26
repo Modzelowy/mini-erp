@@ -1,0 +1,72 @@
+/* assets/style.css (Final version with FOUC fix) */
+
+/* --- FOUC (Flash of Unstyled Content) Fix --- */
+/* Initially hide the sidebar navigation to prevent flicker */
+[data-testid="stSidebarNav"] > ul {
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+}
+
+/* --- Main App Styling --- */
+[data-testid="stAppViewContainer"] > .main {
+    background-image: linear-gradient(180deg, #1E1E2E, #111118);
+    color: #E0E0E0;
+}
+[data-testid="stSidebar"] {
+    background-image: linear-gradient(180deg, #111118, #1E1E2E);
+}
+h1, h2, h3, h4, h5, h6, p {
+    text-align: center;
+}
+h1, h2, h3 {
+    color: #E0B0FF;
+}
+
+/* --- Navigation Buttons Styling --- */
+[data-testid="stSidebarNav"] ul li a {
+    background-image: linear-gradient(90deg, #4A00E0, #8E2DE2);
+    border-radius: 10px;
+    margin: 5px 10px;
+    padding: 10px 15px;
+    color: white !important;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+[data-testid="stSidebarNav"] ul li a[aria-current="page"] {
+    background-image: linear-gradient(90deg, #ff4b4b, #ff0844);
+    font-weight: bold;
+    box-shadow: 0 4px 10px rgba(255, 75, 75, 0.4);
+}
+[data-testid="stSidebarNav"] ul li a:hover:not([aria-current="page"]) {
+    background-image: linear-gradient(90deg, #5A10E0, #9E3DE2);
+    transform: scale(1.02);
+}
+
+/* --- Form Field Styling --- */
+div[data-baseweb="input"] > div > input, div[data-baseweb="input"] > div > textarea {
+    border-radius: 8px !important;
+    border: 2px solid #ff4b4b !important;
+    background-color: #2E2E3E;
+    color: #E0E0E0;
+}
+div[data-baseweb="select"] > div {
+    border-radius: 8px !important;
+    border: 2px solid #ff4b4b !important;
+    background-color: #2E2E3E;
+}
+
+
+/* --- FOUC Fix - Reveal the navigation --- */
+/* This rule is at the end, so it's applied after all other styles are defined.
+   We use an animation for a smooth fade-in effect. */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+[data-testid="stSidebarNav"] > ul {
+    visibility: visible;
+    opacity: 1;
+    animation: fadeIn 0.5s ease-in-out;
+}
