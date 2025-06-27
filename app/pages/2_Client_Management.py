@@ -1,10 +1,11 @@
 # app/pages/2_Client_Management.py
 import pandas as pd
 import streamlit as st
-from database import SessionLocal
-from models import Client, ClientCategory
 from sqlalchemy.orm import Session
-from style_loader import load_css
+
+from app.database import SessionLocal
+from app.models import Client, ClientCategory
+from app.style_loader import load_css
 
 load_css()
 db: Session = SessionLocal()

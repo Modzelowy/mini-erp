@@ -1,37 +1,29 @@
-# The sys.path hack is no longer needed thanks to the pytest configuration.
+# tests/test_models.py (CLEANED VERSION)
 
-# We now import directly from 'models' because pytest treats the 'app' directory as a source root.
-from models import Client, ClientType
+from app.models import Client, ClientCategory
 
 
 def test_client_creation():
     """
     Tests that a Client object can be created with correct attributes.
     """
-    # 1. Setup: Create a new client instance
     client = Client(
+        category=ClientCategory.COMPANY,
         company_name="Test Corp",
         vat_id="PL9999999999",
-        client_type=ClientType.RECIPIENT,
     )
-
-    # 2. Assertions: Check if the attributes are set correctly
     assert client.company_name == "Test Corp"
-    assert client.vat_id == "PL9999999999"
-    assert client.client_type == ClientType.RECIPIENT
+    assert client.category == ClientCategory.COMPANY
 
 
 def test_client_repr():
     """
     Tests the string representation (__repr__) of the Client model.
     """
-    # 1. Setup
     client = Client(
-        company_name="Test Corp",
-        vat_id="PL9999999999",
-        client_type=ClientType.RECIPIENT,
+        category=ClientCategory.INDIVIDUAL,
+        first_name="Jan",
+        last_name="Kowalski",
     )
-
-    # 2. Assertion
-    expected_repr = "<Client(company_name='Test Corp')>"
+    expected_repr = "<Client(id=None, name='Jan Kowalski')>"
     assert repr(client) == expected_repr

@@ -33,7 +33,7 @@ absolufy-imports = "^0.3.1"
 
 [tool.pytest.ini_options]
 pythonpath = [
-  "app"
+  "."
 ]
 [tool.ruff]
 line-length = 88

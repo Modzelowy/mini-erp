@@ -1,10 +1,11 @@
 # app/pages/1_Company_Profile.py (FINAL CORRECTED VERSION)
 
 import streamlit as st
-from database import SessionLocal
-from models import CompanyProfile
 from sqlalchemy.orm import Session
-from style_loader import load_css
+
+from app.database import SessionLocal
+from app.models import CompanyProfile
+from app.style_loader import load_css
 
 load_css()
 # --- Initial Setup ---

@@ -4,8 +4,10 @@ from datetime import datetime, timedelta
 
 import pandas as pd
 import streamlit as st
-from database import SessionLocal
-from models import (
+from sqlalchemy.orm import Session, joinedload
+
+from app.database import SessionLocal
+from app.models import (
     Client,
     CompanyProfile,
     Order,
@@ -15,9 +17,8 @@ from models import (
     Product,
     ProductUnit,
 )
-from sqlalchemy.orm import Session, joinedload
-from style_loader import load_css
-from utils import generate_invoice_pdf, get_next_invoice_number
+from app.style_loader import load_css
+from app.utils import generate_invoice_pdf, get_next_invoice_number
 
 load_css()
 db: Session = SessionLocal()

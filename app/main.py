@@ -1,9 +1,10 @@
 # app/main.py (FINAL CORRECTED VERSION)
 
 import streamlit as st
-from database import engine
-from models import Base
-from style_loader import load_css  # <-- THE MISSING IMPORT!
+
+from app.database import engine
+from app.models import Base
+from app.style_loader import load_css  # <-- THE MISSING IMPORT!
 
 # --- Initial Database Setup ---
 # This is the crucial line that was missing.

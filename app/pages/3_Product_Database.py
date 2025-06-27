@@ -2,11 +2,12 @@
 
 import pandas as pd
 import streamlit as st
-from database import SessionLocal
-from models import Product, ProductUnit
 from sqlalchemy.orm import Session
-from style_loader import load_css
-from utils import get_next_product_index  # <-- NEW IMPORT
+
+from app.database import SessionLocal
+from app.models import Product, ProductUnit
+from app.style_loader import load_css
+from app.utils import get_next_product_index  # <-- NEW IMPORT
 
 load_css()
 db: Session = SessionLocal()
