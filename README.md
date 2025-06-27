@@ -1,35 +1,49 @@
 # Mini ERP with Streamlit and Docker
 
-A comprehensive web-based Enterprise Resource Planning (ERP) system built with Streamlit, SQLAlchemy, and PostgreSQL, designed to manage company operations including client management, product catalog, and order processing.
+A comprehensive web-based Enterprise Resource Planning (ERP) system built with Streamlit, SQLAlchemy, and PostgreSQL, designed to manage company operations including client management, product catalog, order processing, and invoicing.
 
 ## ✨ Key Features
 
 ### Company Profile
-- Manage your company's profile information
-- Centralized company details management
+- Manage your company's profile information including address, VAT ID, and bank details
+- Centralized company details management for professional invoicing
 
 ### Client Management
-- Add and manage clients (suppliers/recipients)
-- View and search through client database
-- Track client interactions and history
+- Add and manage clients (suppliers/recipients) with detailed contact information
+- Support for both companies and individuals
+- Track client interactions and order history
+- Filter and search through client database
 
 ### Product Database
-- Comprehensive product catalog management
-- Track products with unique indexes and units
+- Comprehensive product catalog management with unique product indexes
+- Track inventory levels with multiple unit types (pcs, kg, set, m)
+- Set default VAT rates for products
 - Categorize and organize products efficiently
 
-### Order Management
-- Create and manage sales/purchase orders
+### Order & Invoice Management
+- Create and manage sales/purchase orders with an intuitive interface
 - Interactive shopping cart for order assembly
+- Generate professional PDF invoices with automatic numbering
+- Track payment status (Paid/Unpaid/Overdue)
 - View order history with detailed breakdowns
-- Calculate order totals and track order status
+- Automatic calculation of order totals including VAT
+- Support for multiple payment terms and due dates
+
+## 🎯 New in This Version
+
+- **Professional Invoicing System**: Generate and download PDF invoices with company branding
+- **Enhanced Order Management**: Improved UI for creating and managing orders
+- **VAT Support**: Automatic VAT calculations with configurable rates
+- **Responsive Design**: Works on both desktop and tablet devices
+- **Data Export**: Export order data to CSV for accounting purposes
 
 ## 🛠️ Tech Stack
 
 - **Frontend**: Streamlit
 - **Backend**: Python 3.10+
 - **Database**: PostgreSQL with SQLAlchemy ORM
-- **Data Handling**: Pandas for data manipulation
+- **PDF Generation**: WeasyPrint for professional invoice generation
+- **Data Handling**: Pandas for data manipulation and export
 - **Containerization**: Docker & Docker Compose
 - **Dependency Management**: Poetry
 - **Code Quality**: pre-commit hooks, mypy, ruff, black
@@ -43,6 +57,7 @@ A comprehensive web-based Enterprise Resource Planning (ERP) system built with S
 - Poetry (for dependency management)
 
 ### Running with Docker (Recommended)
+
 
 1. **Clone the repository:**
    ```bash
@@ -103,9 +118,10 @@ mini-erp/
 │   │   └── 4_Orders.py
 │   ├── __init__.py
 │   ├── database.py          # Database connection and session management
+│   ├── invoice_template.html # HTML template for invoice generation
 │   ├── main.py              # Main Streamlit application
 │   ├── models.py            # SQLAlchemy models
-│   └── style_loader.py      # CSS styling utilities
+│   └── utils.py             # Utility functions including invoice generation
 ├── assets/                  # Static assets (CSS, images, etc.)
 ├── tests/                   # Test files
 ├── .pre-commit-config.yaml  # pre-commit hooks configuration
