@@ -1,81 +1,62 @@
 # Mini ERP with Streamlit and Docker
 
-A comprehensive web-based Enterprise Resource Planning (ERP) system built with Streamlit, SQLAlchemy, and PostgreSQL, designed to manage company operations including client management, product catalog, order processing, and invoicing.
+A comprehensive web-based Enterprise Resource Planning (ERP) system built with Streamlit, SQLAlchemy, and PostgreSQL, designed to manage company operations including client management, product catalog, order processing, and professional invoicing.
 
 ## ✨ Key Features
 
 ### Company Profile
-- Manage your company's profile information including address, VAT ID, and bank details
-- Centralized company details management for professional invoicing
+- Manage company details (name, address, VAT ID)
+- Configure bank account information
+- Centralized company settings for professional invoicing
 
 ### Client Management
-- Add and manage clients (suppliers/recipients) with detailed contact information
 - Support for both companies and individuals
+- VAT ID validation
 - Track client interactions and order history
-- Filter and search through client database
+- Advanced search and filtering capabilities
 
 ### Product Database
-- Comprehensive product catalog management with unique product indexes
-- Track inventory levels with multiple unit types (pcs, kg, set, m)
-- Set default VAT rates for products
-- Categorize and organize products efficiently
+- Comprehensive product catalog with unique indexes/SKUs
+- Multiple unit types support (pcs, kg, set, m)
+- Automatic product index generation
+- Configurable VAT rates (23%, 8%, 5%, 0%)
 
 ### Order & Invoice Management
-- Create and manage sales/purchase orders with an intuitive interface
-- Interactive shopping cart for order assembly
-- Generate professional PDF invoices with automatic numbering
-- Track payment status (Paid/Unpaid/Overdue)
-- View order history with detailed breakdowns
-- Automatic calculation of order totals including VAT
-- Support for multiple payment terms and due dates
-
-## 🎯 New in This Version
-
-- **Professional Invoicing System**: Generate and download PDF invoices with company branding
-- **Enhanced Order Management**: Improved UI for creating and managing orders
-- **VAT Support**: Automatic VAT calculations with configurable rates
-- **Responsive Design**: Works on both desktop and tablet devices
-- **Data Export**: Export order data to CSV for accounting purposes
+- Intuitive order creation with shopping cart interface
+- Automatic invoice number generation (FV/Number/Month/Year)
+- Professional PDF invoice generation with company branding
+- Multiple payment methods (Bank Transfer, Cash, Card)
+- Payment status tracking (Paid/Unpaid/Overdue)
+- Automatic calculation of payment due dates
+- Support for both gross and net pricing
 
 ## 🛠️ Tech Stack
 
 - **Frontend**: Streamlit
-- **Backend**: Python 3.10+
+- **Backend**: Python 3.12
 - **Database**: PostgreSQL with SQLAlchemy ORM
-- **PDF Generation**: WeasyPrint for professional invoice generation
-- **Data Handling**: Pandas for data manipulation and export
+- **PDF Generation**: WeasyPrint
 - **Containerization**: Docker & Docker Compose
 - **Dependency Management**: Poetry
-- **Code Quality**: pre-commit hooks, mypy, ruff, black
+- **Code Quality**: pre-commit, mypy, ruff, black
 - **Testing**: pytest
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Docker and Docker Compose installed on your system
-- Python 3.10+ (for local development)
+- Docker and Docker Compose
+- Python 3.12 (for development)
 - Poetry (for dependency management)
 
 ### Running with Docker (Recommended)
 
+```bash
+git clone <your-repo-url>
+cd mini-erp
+docker-compose up --build
+```
 
-1. **Clone the repository:**
-   ```bash
-   git clone <your-repo-url>
-   cd mini-erp
-   ```
-
-2. **Start the application:**
-   ```bash
-   docker-compose up --build
-   ```
-   This will build the Docker image and start both the Streamlit app and PostgreSQL database containers.
-
-3. **Access the application:**
-   Open your web browser and navigate to:
-   ```
-   http://localhost:8501
-   ```
+The application will be available at: `http://localhost:8501`
 
 ### Local Development
 
@@ -94,18 +75,6 @@ A comprehensive web-based Enterprise Resource Planning (ERP) system built with S
    poetry run streamlit run app/main.py
    ```
 
-## ⚙️ Configuration
-
-The application is configured using environment variables, which can be set in the `docker-compose.yml` file or in a `.env` file.
-
-### Environment Variables
-
-- `POSTGRES_USER`: Database username (default: `postgres`)
-- `POSTGRES_PASSWORD`: Database password (default: `postgres`)
-- `POSTGRES_DB`: Database name (default: `erp_db`)
-- `POSTGRES_HOST`: Database host (default: `db`)
-- `STREAMLIT_SERVER_PORT`: Port to run the Streamlit app (default: `8501`)
-
 ## 📂 Project Structure
 
 ```
@@ -115,15 +84,20 @@ mini-erp/
 │   │   ├── 1_Company_Profile.py
 │   │   ├── 2_Client_Management.py
 │   │   ├── 3_Product_Database.py
-│   │   └── 4_Orders.py
+│   │   └── 4_Orders.py      # Order and invoice management
 │   ├── __init__.py
 │   ├── database.py          # Database connection and session management
-│   ├── invoice_template.html # HTML template for invoice generation
+│   ├── invoice_template.html # Professional HTML template for invoices
 │   ├── main.py              # Main Streamlit application
 │   ├── models.py            # SQLAlchemy models
+│   ├── style_loader.py      # CSS styling utilities
 │   └── utils.py             # Utility functions including invoice generation
-├── assets/                  # Static assets (CSS, images, etc.)
+├── assets/                  # Static assets (CSS, images, fonts)
+│   └── DejaVuSans.ttf      # Font for PDF generation
 ├── tests/                   # Test files
+│   ├── __pycache__/
+│   ├── test_models.py
+│   └── test_utils.py
 ├── .pre-commit-config.yaml  # pre-commit hooks configuration
 ├── docker-compose.yml       # Docker Compose configuration
 ├── Dockerfile               # Dockerfile for the application
