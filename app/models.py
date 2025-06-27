@@ -1,5 +1,4 @@
 # app/models.py (Version with ONLY the Client refactor)
-
 import enum
 from datetime import datetime
 
@@ -13,10 +12,13 @@ from sqlalchemy import (
     String,
     Text,
 )
-from sqlalchemy import Enum as SAEnum
+from sqlalchemy import (
+    Enum as SAEnum,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
+# --- Enums ---
 class ClientCategory(enum.Enum):
     COMPANY = "Company"
     INDIVIDUAL = "Individual"
@@ -34,16 +36,22 @@ class ProductUnit(enum.Enum):
     M = "m"
 
 
+class PaymentStatus(enum.Enum):
+    UNPAID = "Unpaid"
+    PAID = "Paid"
+    OVERDUE = "Overdue"
+
+
+# --- Models ---
 class OrderItem(Base):
     __tablename__ = "order_items"
+    # ... (no changes in this class body)
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     order_id: Mapped[int] = mapped_column(ForeignKey("orders.id"))
     product_id: Mapped[int] = mapped_column(ForeignKey("products.id"))
     quantity: Mapped[float] = mapped_column(Float, nullable=False)
     price_per_unit: Mapped[float] = mapped_column(Float, nullable=False)
-    # --- ADD THIS LINE ---
     vat_rate: Mapped[float] = mapped_column(Float, nullable=False)
-
     product: Mapped["Product"] = relationship(lazy="joined")
     order: Mapped["Order"] = relationship(back_populates="items")
 
@@ -51,6 +59,13 @@ class OrderItem(Base):
 class Order(Base):
     __tablename__ = "orders"
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    invoice_number: Mapped[str | None] = mapped_column(
+        String, unique=True, index=True, nullable=True
+    )
+    payment_due_date: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    payment_status: Mapped[PaymentStatus] = mapped_column(
+        SAEnum(PaymentStatus), nullable=False, default=PaymentStatus.UNPAID
+    )
     order_date: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     client_id: Mapped[int] = mapped_column(ForeignKey("clients.id"))
     client: Mapped["Client"] = relationship(back_populates="orders", lazy="joined")

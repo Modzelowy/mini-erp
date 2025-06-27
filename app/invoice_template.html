@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: 'DejaVu', sans-serif; font-size: 10pt; color: #333; }
+        .invoice-box { max-width: 800px; margin: auto; padding: 30px; border: 1px solid #eee; box-shadow: 0 0 10px rgba(0, 0, 0, .15); }
+        .header { text-align: center; margin-bottom: 20px; }
+        .header h1 { color: #333; margin: 0; }
+        .details-table { width: 100%; line-height: inherit; text-align: left; }
+        .details-table td { padding: 5px; vertical-align: top; }
+        .details-table .right { text-align: right; }
+        .seller-buyer .title { font-weight: bold; color: #555; }
+        .items-table { width: 100%; line-height: inherit; text-align: left; border-collapse: collapse; }
+        .items-table th { background: #eee; border: 1px solid #ddd; padding: 8px; font-weight: bold; }
+        .items-table td { padding: 8px; border: 1px solid #ddd; }
+        .items-table .total td { border-top: 2px solid #eee; font-weight: bold; text-align: right; }
+        .summary { margin-top: 20px; text-align: right; }
+    </style>
+</head>
+<body>
+    <div class="invoice-box">
+        <div class="header">
+            <h1>Faktura VAT nr {{ doc.document_number }}</h1>
+        </div>
+        <table class="details-table">
+            <tr>
+                <td>
+                    <strong>Data wystawienia:</strong> {{ doc.issue_date.strftime('%Y-%m-%d') }}<br>
+                    <strong>Data sprzedaży:</strong> {{ doc.sale_date.strftime('%Y-%m-%d') }}<br>
+                    <strong>Termin płatności:</strong> {{ doc.payment_due_date.strftime('%Y-%m-%d') }}
+                </td>
+            </tr>
+        </table>
+        <hr>
+        <table class="details-table seller-buyer">
+            <tr>
+                <td class="title">Sprzedawca:</td>
+                <td class="title">Nabywca:</td>
+            </tr>
+            <tr>
+                <td>
+                    {{ company.company_name }}<br>
+                    {{ company.address_street }}<br>
+                    {{ company.address_zipcode }} {{ company.address_city }}<br>
+                    NIP: {{ company.vat_id }}
+                </td>
+                <td>
+                    {{ order.client.display_name }}<br>
+                    {{ order.client.address_street }}<br>
+                    {{ order.client.address_zipcode }} {{ order.client.address_city }}<br>
+                    NIP: {{ order.client.vat_id }}
+                </td>
+            </tr>
+        </table>
+        <br>
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>Lp.</th>
+                    <th>Nazwa towaru/usługi</th>
+                    <th>Ilość</th>
+                    <th>J.m.</th>
+                    <th>Cena netto</th>
+                    <th>Stawka VAT</th>
+                    <th>Wartość netto</th>
+                    <th>Wartość brutto</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.items %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ item.product.name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.product.unit.value }}</td>
+                    <td>{{ "%.2f"|format(item.price_per_unit) }} PLN</td>
+                    <td>{{ "%.0f"|format(item.vat_rate) }}%</td>
+                    <td>{{ "%.2f"|format(item.quantity * item.price_per_unit) }} PLN</td>
+                    <td>{{ "%.2f"|format(item.quantity * item.price_per_unit * (1 + item.vat_rate / 100)) }} PLN</td>
+                </tr>
+                {% endfor %}
+                <tr class="total">
+                    <td colspan="7">Suma netto:</td>
+                    <td>{{ "%.2f"|format(summary.total_net) }} PLN</td>
+                </tr>
+                <tr class="total">
+                    <td colspan="7">Suma VAT:</td>
+                    <td>{{ "%.2f"|format(summary.total_vat) }} PLN</td>
+                </tr>
+                <tr class="total">
+                    <td colspan="7">Do zapłaty (brutto):</td>
+                    <td>{{ "%.2f"|format(summary.total_gross) }} PLN</td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="summary">
+            <strong>Do zapłaty słownie:</strong> {{ summary.total_in_words }}
+        </div>
+    </div>
+</body>
+</html>
