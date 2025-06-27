@@ -5,26 +5,32 @@
     <style>
         @font-face {
             font-family: 'DejaVu';
+            /* Upewnij się, że ta ścieżka jest poprawna względem miejsca uruchomienia WeasyPrint */
             src: url('assets/DejaVuSans.ttf');
         }
         body { font-family: 'DejaVu', sans-serif; font-size: 10pt; color: #333; }
         .invoice-box { max-width: 800px; margin: auto; padding: 30px; border: 1px solid #eee; box-shadow: 0 0 10px rgba(0, 0, 0, .15); }
-        .header { text-align: center; margin-bottom: 20px; }
-        .header h1 { color: #333; margin: 0; }
-        .details-table { width: 100%; line-height: inherit; text-align: left; }
-        .details-table td { padding: 5px; vertical-align: top; }
+        .header h1 { color: #333; margin: 0; padding-bottom: 20px; text-align: center; border-bottom: 2px solid #eee; }
+        .details-table { width: 100%; line-height: 1.6; margin-top: 25px;}
         .details-table .right { text-align: right; }
-        .seller-buyer .title { font-weight: bold; color: #555; }
-        .items-table { width: 100%; line-height: inherit; text-align: left; border-collapse: collapse; margin-top: 20px;}
-        .items-table th { background: #eee; border: 1px solid #ddd; padding: 6px; font-weight: bold; text-align: center; }
-        .items-table td { padding: 6px; border: 1px solid #ddd; }
+        .seller-buyer { margin-top: 40px; }
+        .seller-buyer td { width: 50%; vertical-align: top; }
+        .seller-buyer .title { font-weight: bold; color: #555; margin-bottom: 5px; }
+        .items-table { width: 100%; line-height: inherit; text-align: left; border-collapse: collapse; margin-top: 40px;}
+        .items-table th { background: #eee; border: 1px solid #ddd; padding: 8px; font-weight: bold; text-align: center; }
+        .items-table td { padding: 8px; border: 1px solid #ddd; }
         .items-table .center { text-align: center; }
         .items-table .right { text-align: right; }
-        .summary-table { width: 40%; margin-top: 20px; float: right; border-collapse: collapse; }
+        .summary-section { margin-top: 30px; }
+        .summary-table { width: 50%; float: right; border-collapse: collapse; }
         .summary-table td { padding: 6px; border: 1px solid #ddd; }
         .summary-table .label { font-weight: bold; }
         .summary-table .value { text-align: right; }
-        .total-in-words { margin-top: 30px; font-weight: bold; }
+        .total-in-words { margin-top: 15px; font-weight: bold; }
+        .payment-info { margin-top: 30px; padding-top: 15px; border-top: 1px solid #eee;}
+        .signatures { margin-top: 80px; width: 100%; }
+        .signatures td { width: 50%; text-align: center; padding-top: 40px;}
+        .signatures .label { color: #777; font-size: 8pt; border-top: 1px solid #999; padding-top: 5px;}
     </style>
 </head>
 <body>
@@ -35,35 +41,36 @@
         <table class="details-table">
             <tr>
                 <td><strong>Data wystawienia:</strong> {{ order.order_date.strftime('%Y-%m-%d') }}</td>
-                <td class="right"><strong>Termin płatności:</strong> {{ order.payment_due_date.strftime('%Y-%m-%d') }}</td>
+                <td class="right"><strong>Data sprzedaży:</strong> {{ order.order_date.strftime('%Y-%m-%d') }}</td>
             </tr>
         </table>
-        <hr>
+
         <table class="details-table seller-buyer">
             <tr>
-                <td class="title" style="width:50%;">Sprzedawca:</td>
-                <td class="title" style="width:50%;">Nabywca:</td>
+                <td class="title">Sprzedawca</td>
+                <td class="title" style="text-align: right;">Nabywca</td>
             </tr>
             <tr>
                 <td>
-                    {{ company.company_name }}<br>
+                    <strong>{{ company.company_name }}</strong><br>
                     {{ company.address_street }}<br>
                     {{ company.address_zipcode }} {{ company.address_city }}<br>
                     NIP: {{ company.vat_id }}
                 </td>
-                <td>
-                    {{ order.client.display_name }}<br>
+                <td class="right">
+                    <strong>{{ order.client.display_name }}</strong><br>
                     {{ order.client.address_street }}<br>
                     {{ order.client.address_zipcode }} {{ order.client.address_city }}<br>
                     NIP: {{ order.client.vat_id or '---' }}
                 </td>
             </tr>
         </table>
+
         <table class="items-table">
             <thead>
                 <tr>
                     <th>Lp.</th>
-                    <th style="width:40%;">Nazwa towaru</th>
+                    <th style="width:40%;">Nazwa towaru/usługi</th>
                     <th>J.m.</th>
                     <th>Ilość</th>
                     <th>Cena netto</th>
@@ -87,15 +94,45 @@
                 {% endfor %}
             </tbody>
         </table>
-        <table class="summary-table">
-            <tr><td class="label">Suma netto:</td><td class="value">{{ "%.2f"|format(summary.total_net) }} PLN</td></tr>
-            <tr><td class="label">Suma VAT:</td><td class="value">{{ "%.2f"|format(summary.total_vat) }} PLN</td></tr>
-            <tr><td class="label">Do zapłaty (brutto):</td><td class="value">{{ "%.2f"|format(summary.total_gross) }} PLN</td></tr>
-        </table>
-        <div style="clear: both;"></div>
-        <div class="total-in-words">
-            <strong>Słownie:</strong> {{ summary.total_in_words }}
+
+        <div class="summary-section">
+            <table class="summary-table">
+                <tr><td class="label">Suma netto:</td><td class="value">{{ "%.2f"|format(summary.total_net) }} PLN</td></tr>
+                <tr><td class="label">Suma VAT:</td><td class="value">{{ "%.2f"|format(summary.total_vat) }} PLN</td></tr>
+                {% if order.payment_status.value == 'Paid' %}
+                    <tr class="total"><td class="label">Zapłacono (brutto):</td><td class="value" style="background-color: #eee;">{{ "%.2f"|format(summary.total_gross) }} PLN</td></tr>
+                    <tr class="total"><td class="label">Pozostało do zapłaty:</td><td class="value">0.00 PLN</td></tr>
+                {% else %}
+                    <tr class="total"><td class="label" style="background-color: #eee;">Do zapłaty (brutto):</td><td class="value" style="background-color: #eee;">{{ "%.2f"|format(summary.total_gross) }} PLN</td></tr>
+                {% endif %}
+            </table>
+            <div style="clear: both;"></div>
+            <div class="total-in-words">
+                <strong>Słownie (brutto):</strong> {{ summary.total_in_words }}
+            </div>
         </div>
+
+        <div class="payment-info">
+            <strong>Forma płatności:</strong> {{ order.payment_method.value if order.payment_method else 'Nie określono' }}<br>
+            {% if order.payment_status.value != 'Paid' and order.payment_method.value == 'Bank Transfer' %}
+                <strong>Termin płatności:</strong> {{ order.payment_due_date.strftime('%Y-%m-%d') }}<br>
+                <strong>Należność prosimy przelać na konto o numerze:</strong><br>
+                {{ company.bank_account_number }}
+            {% elif order.payment_status.value == 'Paid' %}
+                <strong>Status:</strong> <span style="color: green; font-weight: bold;">ZAPŁACONO</span>
+            {% endif %}
+        </div>
+
+        <table class="signatures">
+            <tr>
+                <td>
+                    <span class="label">podpis osoby upoważnionej do wystawienia faktury</span>
+                </td>
+                <td>
+                    <span class="label">podpis osoby upoważnionej do odbioru faktury</span>
+                </td>
+            </tr>
+        </table>
     </div>
 </body>
 </html>

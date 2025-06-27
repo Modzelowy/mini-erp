@@ -42,6 +42,12 @@ class PaymentStatus(enum.Enum):
     OVERDUE = "Overdue"
 
 
+class PaymentMethod(enum.Enum):
+    BANK_TRANSFER = "Bank Transfer"
+    CASH = "Cash"
+    CARD = "Payment Card"
+
+
 # --- Models ---
 class OrderItem(Base):
     __tablename__ = "order_items"
@@ -66,6 +72,11 @@ class Order(Base):
     payment_status: Mapped[PaymentStatus] = mapped_column(
         SAEnum(PaymentStatus), nullable=False, default=PaymentStatus.UNPAID
     )
+    # --- ADD THIS NEW FIELD ---
+    payment_method: Mapped[PaymentMethod | None] = mapped_column(
+        SAEnum(PaymentMethod), nullable=True
+    )
+
     order_date: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     client_id: Mapped[int] = mapped_column(ForeignKey("clients.id"))
     client: Mapped["Client"] = relationship(back_populates="orders", lazy="joined")
