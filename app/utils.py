@@ -1,11 +1,11 @@
-# app/utils.py
+# app/utils.py (FINAL, SIMPLIFIED VERSION)
 
 from datetime import datetime
 
 from jinja2 import Environment, FileSystemLoader
 
-# Importujmy modele na górze, aby mypy był zadowolony
-from models import Order, Product
+# Import only the models we actually use in this file
+from models import CompanyProfile, Order, Product
 from num2words import num2words
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -21,16 +21,13 @@ def get_next_product_index(db: Session) -> int:
 
 
 def get_next_invoice_number(db: Session) -> str:
-    """
-    Generates the next invoice number for the current month and year.
-    Format: FV/Number/Month/Year
-    """
+    """Generates the next invoice number for the current month and year."""
     now = datetime.now()
     month = now.month
     year = now.year
 
-    # Find the latest order with an invoice number from the current month and year
-    last_invoice = (
+    # Find the latest order with an invoice number from the current month/year
+    last_invoice_num = (
         db.query(Order.invoice_number)
         .filter(
             Order.invoice_number.isnot(None),
@@ -41,26 +38,20 @@ def get_next_invoice_number(db: Session) -> str:
         .first()
     )
 
-    if last_invoice:
-        # Extract number from e.g. "FV/12/6/2024" -> 12
-        last_number_str = last_invoice[0].split("/")[1]
-        next_number = int(last_number_str) + 1
+    if last_invoice_num:
+        last_number = int(last_invoice_num[0].split("/")[1])
+        next_number = last_number + 1
     else:
-        # It's the first invoice this month
         next_number = 1
 
     return f"FV/{next_number}/{month}/{year}"
 
 
-def generate_invoice_pdf(order, company_profile, issued_document) -> bytes:
-    """
-    Generates a PDF invoice from an HTML template for a given order.
-    """
-    # Setup Jinja2 environment
+def generate_invoice_pdf(order: Order, company: CompanyProfile) -> bytes:
+    """Generates a PDF invoice from an HTML template for a given order."""
     env = Environment(loader=FileSystemLoader("app/"))
     template = env.get_template("invoice_template.html")
 
-    # Prepare data for the template
     total_net = sum(item.quantity * item.price_per_unit for item in order.items)
     total_vat = sum(
         item.quantity * item.price_per_unit * (item.vat_rate / 100)
@@ -68,7 +59,6 @@ def generate_invoice_pdf(order, company_profile, issued_document) -> bytes:
     )
     total_gross = total_net + total_vat
 
-    # Convert amount to words for the invoice
     integer_part = int(total_gross)
     fractional_part = round((total_gross % 1) * 100)
     total_in_words = (
@@ -78,8 +68,7 @@ def generate_invoice_pdf(order, company_profile, issued_document) -> bytes:
 
     template_data = {
         "order": order,
-        "company": company_profile,
-        "doc": issued_document,
+        "company": company,
         "summary": {
             "total_net": total_net,
             "total_vat": total_vat,
@@ -88,10 +77,7 @@ def generate_invoice_pdf(order, company_profile, issued_document) -> bytes:
         },
     }
 
-    # Render the HTML template with data
     html_out = template.render(template_data)
-
-    # Convert HTML to PDF using WeasyPrint
     pdf_bytes = HTML(string=html_out).write_pdf()
 
     return pdf_bytes

@@ -1,4 +1,4 @@
-# app/pages/4_Orders.py (FINAL CORRECTED VERSION)
+# app/pages/4_Orders.py (FINAL, SIMPLIFIED VERSION)
 
 from datetime import datetime, timedelta
 
@@ -8,8 +8,6 @@ from database import SessionLocal
 from models import (
     Client,
     CompanyProfile,
-    DocumentType,
-    IssuedDocument,
     Order,
     OrderItem,
     Product,
@@ -53,7 +51,6 @@ with tab1:
         st.info("No orders found matching the criteria.")
     else:
         for order in orders:
-            # --- NEW LOGIC: Display payment status with colors ---
             status = order.payment_status.value
             color = (
                 "green"
@@ -62,19 +59,14 @@ with tab1:
                 if status == "Unpaid"
                 else "red"
             )
-
-            # Show Invoice Number in the title if it exists
             invoice_info = (
                 f"| Invoice: {order.invoice_number}" if order.invoice_number else ""
             )
-
             expander_title = (
                 f"Order #{order.id} - {order.client.display_name} {invoice_info} | "
                 f"Status: :{color}[{status}]"
             )
-
             with st.expander(expander_title):
-                # --- NEW SECTION: Display Invoice Details ---
                 st.write("**Financial Details:**")
                 col1, col2, col3 = st.columns(3)
                 with col1:
@@ -120,50 +112,35 @@ with tab1:
                     pd.DataFrame(items_data), use_container_width=True, hide_index=True
                 )
 
-                # --- NEW SECTION: INVOICE ACTIONS ---
-st.markdown("---")
-st.write("**Actions**")
+                st.markdown("---")
+                st.write("**Actions**")
 
-# Get the latest invoice document for this order, if it exists
-latest_invoice = next(
-    (
-        doc
-        for doc in sorted(order.documents, key=lambda d: d.issue_date, reverse=True)
-        if doc.document_type == DocumentType.VAT_INVOICE
-    ),
-    None,
-)
-
-if latest_invoice:
-    st.success(f"Invoice {latest_invoice.document_number} has been generated.")
-
-    company = db.query(CompanyProfile).first()
-    if company:
-        pdf_bytes = generate_invoice_pdf(order, company, latest_invoice)
-        st.download_button(
-            label="📄 Download Invoice PDF",
-            data=pdf_bytes,
-            file_name=f"faktura_{latest_invoice.document_number.replace('/', '-')}.pdf",
-            mime="application/pdf",
-            key=f"pdf_{order.id}",
-        )
-    else:
-        st.warning("Cannot generate PDF. Please complete company profile first.")
-else:
-    if st.button("Generate Invoice", key=f"gen_inv_{order.id}"):
-        next_inv_num = get_next_invoice_number(db, DocumentType.VAT_INVOICE)
-
-        # Create the document record in the database
-        new_doc = IssuedDocument(
-            order_id=order.id,
-            document_number=next_inv_num,
-            document_type=DocumentType.VAT_INVOICE,
-            payment_due_date=datetime.now() + timedelta(days=14),
-        )
-        db.add(new_doc)
-        db.commit()
-        st.toast(f"Invoice {next_inv_num} generated!", icon="🎉")
-        st.rerun()
+                if order.invoice_number:
+                    st.success(f"Invoice {order.invoice_number} has been generated.")
+                    company = db.query(CompanyProfile).first()
+                    if company:
+                        pdf_bytes = generate_invoice_pdf(order, company)
+                        st.download_button(
+                            label="📄 Download Invoice PDF",
+                            data=pdf_bytes,
+                            file_name=f"Faktura_{order.invoice_number.replace('/', '-')}.pdf",
+                            mime="application/pdf",
+                            key=f"pdf_{order.id}",
+                        )
+                    else:
+                        st.warning(
+                            "Cannot generate PDF. Please complete company profile first."
+                        )
+                else:
+                    if st.button("Generate Invoice", key=f"gen_inv_{order.id}"):
+                        next_inv_num = get_next_invoice_number(db)
+                        order.invoice_number = next_inv_num
+                        order.payment_due_date = datetime.now() + timedelta(days=14)
+                        db.commit()
+                        st.toast(
+                            f"Invoice {order.invoice_number} generated!", icon="🎉"
+                        )
+                        st.rerun()
 
 with tab2:
     if "cart" not in st.session_state:
